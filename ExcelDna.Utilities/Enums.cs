@@ -1,3 +1,4 @@
+﻿/*
 The MIT License (MIT)
 
 Copyright (c) 2014 Joachim Loebb
@@ -19,3 +20,55 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+using System;
+
+
+namespace ExcelDna.Utilities
+{
+    public enum xlCalculation
+    {
+        Automatic = 1,
+        SemiAutomatic = 2,
+        Manual = 3,
+    }
+
+    public enum xlPasteType
+    {
+        PasteAll = 1,
+        PasteFormulas = 2,
+        PasteValues = 3,
+        PasteFormats = 4,
+        PasteNotes = 5
+    }
+
+    public enum xlPasteAction
+    {
+        None = 1,
+        Add = 2,
+        Substract = 3,
+        Multiply = 4,
+        Divide = 5,
+    }
+
+    public enum xlUpdateLinks
+    {
+        Never = 0,
+        ExternalOnly = 1,
+        RemoteOnly = 2,
+        ExternalAndRemote = 3,
+    }
+
+    public enum xlBorderStyle
+    {
+        NoBorder = 0,
+        ThinLine = 1,
+        MediumLine = 2,
+        DashedLine = 3,
+        DottedLine = 4,
+        ThickLine = 5,
+        Doubleline = 6,
+        HairLine = 7,
+    }
+}

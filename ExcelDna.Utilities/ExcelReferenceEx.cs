@@ -39,6 +39,10 @@ namespace ExcelDna.Utilities
 
     public static partial class ExcelReferenceEx
     {
+        public static T GetValue<T>(this ExcelReference range)
+        {
+            return XLConversion.ConvertTo<T>(range.GetValue());
+        }
 
         public static void DeleteEntireRows(this ExcelReference range)
         {

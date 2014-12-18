@@ -48,12 +48,11 @@ namespace ExcelDna.Utilities
 
         #region constructors
 
-        public XLObjectMapping(Type t)
+        public XLObjectMapping(Type t, Func<IXLObjectMapping> factory = null)
         {
             _t = t;
-            var mapinterface = t.GetInterfaces().FirstOrDefault(i => i == typeof(IXLObjectMapping));
 
-            if (mapinterface == null)
+            if (factory == null && t.GetInterfaces().FirstOrDefault(i => i == typeof(IXLObjectMapping)) == null)
             {
                 var fieldinfos = t.GetProperties();
 
@@ -63,7 +62,7 @@ namespace ExcelDna.Utilities
             }
             else
             {
-                IXLObjectMapping instance = (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t,new object[0]) 
+                IXLObjectMapping instance = (factory==null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t,new object[0]) 
                             : (IXLObjectMapping)Activator.CreateInstance(t);
                 int cols = instance.ColumnCount();
 

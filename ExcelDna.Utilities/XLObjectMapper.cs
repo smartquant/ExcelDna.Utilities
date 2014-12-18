@@ -40,10 +40,28 @@ namespace ExcelDna.Utilities
     /// </summary>
     public interface IXLObjectMapping
     {
+        /// <summary>
+        /// Number of columns
+        /// </summary>
+        /// <returns></returns>
         int ColumnCount();
+        /// <summary>
+        /// Column name for index 
+        /// </summary>
+        /// <param name="index">zero based</param>
+        /// <returns></returns>
         string ColumnName(int index);
-
+        /// <summary>
+        /// Indexed getter
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         object GetColumn(int index);
+        /// <summary>
+        /// Indexed setter
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="RHS"></param>
         void SetColumn(int index, object RHS);
     }
 

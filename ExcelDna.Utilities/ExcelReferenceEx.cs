@@ -188,7 +188,9 @@ namespace ExcelDna.Utilities
             var _vt = vt as object[,];
             if (_vt == null) _vt = new object[,] { { vt } };
 
-            int n = _vt.GetLength(0), k = _vt.GetLength(1);
+            int start = (header) ? -1 : 0;
+
+            int n = _vt.GetLength(0) + start, k = _vt.GetLength(1);
             int m = outRange.RowLast - outRange.RowFirst + 1;
 
             bool addRows = n > m;
@@ -197,26 +199,23 @@ namespace ExcelDna.Utilities
             bool updating = XLApp.ScreenUpdating;
             if (updating) XLApp.ScreenUpdating = false;
 
-            
-
-            int start = (header) ? -1 : 0;
-
             ExcelReference formatRange = null, newRange = null;
 
-            var _outrange = new ExcelReference(outRange.RowFirst + start, outRange.RowFirst + start + n - 1,
+            var _outrange = new ExcelReference(outRange.RowFirst + start, outRange.RowFirst + n - 1,
                 outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
 
             if (addRows)
             {
-                formatRange = new ExcelReference(outRange.RowFirst + start, outRange.RowFirst + start,
+                formatRange = new ExcelReference(outRange.RowFirst, outRange.RowFirst,
                     outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
-                newRange = _outrange;
+                newRange = new ExcelReference(outRange.RowFirst, outRange.RowFirst + n - 1,
+                outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
             }
             if (removeRows)
             {
-                formatRange = new ExcelReference(outRange.RowFirst + start + m, outRange.RowFirst + start + m,
+                formatRange = new ExcelReference(outRange.RowFirst + m, outRange.RowFirst + m,
                     outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
-                newRange = new ExcelReference(outRange.RowFirst + start + n, outRange.RowFirst + start + m - 1,
+                newRange = new ExcelReference(outRange.RowFirst + n, outRange.RowFirst + m - 1,
                     outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
                 newRange.ClearContents();
             }
@@ -239,7 +238,7 @@ namespace ExcelDna.Utilities
                 }
 
                 string reference = string.Format("={4}!R{0}C{2}:R{1}C{3}", outRange.RowFirst + 1,
-                    outRange.RowFirst + start + n, outRange.ColumnFirst + 1, outRange.ColumnFirst + k, sheetref);
+                    outRange.RowFirst + n, outRange.ColumnFirst + 1, outRange.ColumnFirst + k, sheetref);
 
                 //DEFINE.NAME(name_text, refers_to, macro_type, shortcut_text, hidden, category, local)
                 XlCall.Excel(XlCall.xlcDefineName, sheet.Name + "!" + localName, reference, Type.Missing, Type.Missing, false, Type.Missing, true);

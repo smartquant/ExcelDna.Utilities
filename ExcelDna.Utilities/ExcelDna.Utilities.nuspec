@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ExcelDna.Utilities</id>
+    <version>0.1</version>
+    <title>ExcelDna.Utilities</title>
+    <authors>Joachim Loebb</authors>
+    <owners>Joachim Loebb</owners>
+    <licenseUrl>https://github.com/smartquant/ExcelDna.Utilities/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/smartquant/ExcelDna.Utilities</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Utilities that add functionality to ExcelDna such as creating a COM like interface to the C API</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright 2013-2014 Joachim Loebb</copyright>
+  </metadata>
+</package>

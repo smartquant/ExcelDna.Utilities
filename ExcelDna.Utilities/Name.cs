@@ -116,7 +116,16 @@ namespace ExcelDna.Utilities
                 return r.GetValue().ConvertTo<T>();
             else
                 return result.ConvertTo<T>();
+        }
 
+        public static T GetValue<T>(Workbook wb, string name)
+        {
+            return GetValue<T>(new Name(wb, name).RefersTo);
+        }
+
+        public static T GetValue<T>(Worksheet ws, string name)
+        {
+            return GetValue<T>(new Name(ws, name).RefersTo);
         }
 
         public static string NameRefersTo(string nameRef)

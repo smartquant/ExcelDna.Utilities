@@ -62,7 +62,7 @@ namespace ExcelDna.Utilities
             }
             else
             {
-                IXLObjectMapping instance = (factory==null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t,new object[0]) 
+                IXLObjectMapping instance = (factory!=null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t,new object[0]) 
                             : (IXLObjectMapping)Activator.CreateInstance(t);
                 int cols = instance.ColumnCount();
 

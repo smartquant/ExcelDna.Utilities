@@ -38,7 +38,6 @@ namespace ExcelDna.Utilities
 
     public static partial class XLApp
     {
-
         private static bool _screenupdating = true;
 
         #region properties
@@ -126,6 +125,7 @@ namespace ExcelDna.Utilities
             }
             get
             {
+                //return (bool)XlCall.Excel(XlCall.xlfGetWorkspace, 40);;
                 return _screenupdating;
             }
         }
@@ -166,60 +166,72 @@ namespace ExcelDna.Utilities
         /// </summary>
         /// <param name="range"></param>
         /// <param name="action"></param>
-        public static void ActionOnSelectedRange(ExcelReference range, Action action)
+        public static void ActionOnSelectedRange(this ExcelReference range, Action action)
         {
             bool updating = ScreenUpdating;
-            if (updating) ScreenUpdating = false;
-            //remember the current active cell 
-            object oldSelectionOnActiveSheet = XlCall.Excel(XlCall.xlfSelection);
 
-            //select caller range AND workbook
-            string rangeSheet = (string)XlCall.Excel(XlCall.xlSheetNm, range);
+            try
+            {
+                if (updating) ScreenUpdating = false;
 
-            XlCall.Excel(XlCall.xlcWorkbookSelect, new object[] { rangeSheet });
-            XlCall.Excel(XlCall.xlcSelect, range);
+                //remember the current active cell 
+                object oldSelectionOnActiveSheet = XlCall.Excel(XlCall.xlfSelection);
 
-            action.Invoke();
+                //select caller range AND workbook
+                string rangeSheet = (string)XlCall.Excel(XlCall.xlSheetNm, range);
 
-            //go back to old selection
-            XlCall.Excel(XlCall.xlcFormulaGoto, oldSelectionOnActiveSheet);
-            if (updating) ScreenUpdating = true;
+                XlCall.Excel(XlCall.xlcWorkbookSelect, new object[] { rangeSheet });
+                XlCall.Excel(XlCall.xlcSelect, range);
+
+                action.Invoke();
+
+                //go back to old selection
+                XlCall.Excel(XlCall.xlcFormulaGoto, oldSelectionOnActiveSheet);
+            }
+            finally
+            {
+                if (updating) XLApp.ScreenUpdating = true;
+            }
         }
 
         public static void ReturnToSelection(Action action)
         {
             bool updating = ScreenUpdating;
-            if (updating) ScreenUpdating = false;
-            //remember the current active cell 
-            object oldSelectionOnActiveSheet = XlCall.Excel(XlCall.xlfSelection);
 
+            try
+            {
+                if (updating) ScreenUpdating = false;
 
-            action.Invoke();
+                //remember the current active cell 
+                object oldSelectionOnActiveSheet = XlCall.Excel(XlCall.xlfSelection);
+                
+                action.Invoke();
 
-            //go back to old selection
-            XlCall.Excel(XlCall.xlcFormulaGoto, oldSelectionOnActiveSheet);
-            if (updating) ScreenUpdating = true;
+                //go back to old selection
+                XlCall.Excel(XlCall.xlcFormulaGoto, oldSelectionOnActiveSheet);
+            }
+            finally
+            {
+                if (updating) XLApp.ScreenUpdating = true;
+            }
         }
 
         public static void NoCalcAndUpdating(this Action action)
         {
-            xlCalculation calc = Calcuation;
-            bool updating = ScreenUpdating;
-            if (updating) ScreenUpdating = false;
+            xlCalculation calcMode = Calcuation;
+            bool updating = ScreenUpdating;           
 
             try
             {
-                Calcuation = xlCalculation.Manual;
+                if (updating) ScreenUpdating = false;
+                if (calcMode != xlCalculation.Manual) Calcuation = xlCalculation.Manual;
+
                 action.Invoke();
-            }
-            catch
-            {
-                throw;
             }
             finally
             {
-                Calcuation = calc;
-                if (updating) ScreenUpdating = true;
+                if (updating) XLApp.ScreenUpdating = true;
+                if (calcMode != xlCalculation.Manual) XLApp.Calcuation = calcMode;
             }
         }
 

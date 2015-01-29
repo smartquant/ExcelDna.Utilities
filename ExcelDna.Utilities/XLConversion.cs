@@ -274,7 +274,21 @@ namespace ExcelDna.Utilities
 
             return @out;
         }
-        
+
+        public static object ToVariant<T>(this T[,] vt)
+        {
+            int n = vt.GetLength(0), k = vt.GetLength(1);
+            object[,] @out = new object[n, k];
+
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < k; j++)
+                {
+                    @out[i, j] = vt.GetValue(i, j);
+                }
+
+            return @out;
+        }
+
         #endregion
     }
 }

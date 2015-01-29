@@ -179,88 +179,134 @@ namespace ExcelDna.Utilities
         /// 1.) will copy the formatting of the first row when adding new rows
         /// 2.) will copy the formatting of the first row after the named range when removing rows
         /// </summary>
-        /// <param name="vt">must be object[,]</param>
+        /// <param name="vt">should be object[,] or simple data type</param>
         /// <param name="outRange"></param>
-        /// <param name="localName">This is the local name</param>
-        /// <param name="header"></param>
-        public static void Fill(this ExcelReference outRange, object vt, string localName, bool header = false)
+        /// <param name="localName">This is the local name of the output range (always ex header)</param>
+        /// <param name="header">if there is a header the named range will start one cell below</param>
+        /// <param name="ignoreFirstCell">will not fill the first cell; header will be inside the range if true</param>
+        public static void Fill(this ExcelReference outRange, object vt, string localName = null, bool header = false, bool ignoreFirstCell = false)
         {
             var _vt = vt as object[,];
             if (_vt == null) _vt = new object[,] { { vt } };
 
-            int start = (header) ? -1 : 0;
-
-            int n = _vt.GetLength(0) + start, k = _vt.GetLength(1);
+            int name_offset = (header && ignoreFirstCell) ? 1 : 0;
+            int origin_offset = ((header && !ignoreFirstCell) ? -1 : 0);
+            int header_offset = (header) ? -1 : 0;
+            int n = _vt.GetLength(0), k = _vt.GetLength(1);
             int m = outRange.RowLast - outRange.RowFirst + 1;
 
-            bool addRows = n > m;
-            bool removeRows = n < m;
-
-            bool updating = XLApp.ScreenUpdating;
-            if (updating) XLApp.ScreenUpdating = false;
+            //formatting
+            bool localRange = !string.IsNullOrEmpty(localName);
+            bool format = true;
 
             ExcelReference formatRange = null, newRange = null;
 
-            var _outrange = new ExcelReference(outRange.RowFirst + start, outRange.RowFirst + n - 1,
-                outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
-
-            if (addRows)
+            if (m == 1 && localRange)
             {
-                formatRange = new ExcelReference(outRange.RowFirst, outRange.RowFirst,
-                    outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
-                newRange = new ExcelReference(outRange.RowFirst, outRange.RowFirst + n - 1,
-                outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
+                formatRange = Name.GetRange(outRange.SheetRef() + "!" + localName);
+                if (formatRange == null)
+                    format = false;
+                else
+                    m = formatRange.RowLast - formatRange.RowFirst + 1;
             }
-            if (removeRows)
+            else if (m == 1)
+                format = false;
+
+
+            bool addRows = n + header_offset > m && format;
+            bool removeRows = n + header_offset < m && format;
+
+
+            int x0 = outRange.RowFirst + origin_offset, y0 = outRange.ColumnFirst; //output origin
+            int x1 = outRange.RowFirst + name_offset, y1 = outRange.ColumnFirst; //name origin           
+
+            bool updating = XLApp.ScreenUpdating;
+            xlCalculation calcMode = XLApp.Calcuation;
+
+            if (updating) XLApp.ScreenUpdating = false;
+
+            try
             {
-                formatRange = new ExcelReference(outRange.RowFirst + m, outRange.RowFirst + m,
-                    outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
-                newRange = new ExcelReference(outRange.RowFirst + n, outRange.RowFirst + m - 1,
-                    outRange.ColumnFirst, outRange.ColumnFirst + k - 1, outRange.SheetId);
-                newRange.ClearContents();
-            }
+                var fillRange = new ExcelReference(x0, x0 + n - 1, y0, y0 + k - 1, outRange.SheetId);
 
-            _outrange.SetValue(_vt);
-
-            //set name
-            Action action = () =>
-            {
-                string sheetref = (string)XlCall.Excel(XlCall.xlSheetNm, outRange);
-                Worksheet sheet = new Worksheet(sheetref);
-
-                //re-color
-                if (addRows || removeRows)
+                if (addRows)
                 {
-                    formatRange.Select();
-                    XLApp.Copy();
-                    newRange.Select();
-                    XLApp.PasteSpecial(xlPasteType.PasteFormats);
+                    formatRange = new ExcelReference(x1, x1, y1, y1 + k - 1, outRange.SheetId); //first row
+                    newRange = new ExcelReference(x1, x1 + n + header_offset - 1, y1, y1 + k - 1, outRange.SheetId);
+                }
+                if (removeRows)
+                {
+                    formatRange = new ExcelReference(x1 + m, x1 + m, y1, y1 + k - 1, outRange.SheetId); //last row + 1
+                    newRange = new ExcelReference(x1 + n + header_offset, x1 + m - 1, y1, y1 + k - 1, outRange.SheetId);
+                    newRange.ClearContents();
                 }
 
-                string reference = string.Format("={4}!R{0}C{2}:R{1}C{3}", outRange.RowFirst + 1,
-                    outRange.RowFirst + n, outRange.ColumnFirst + 1, outRange.ColumnFirst + k, sheetref);
+                //set the range except the first cell
+                if (ignoreFirstCell && n > 1)
+                {
+                    //first row
+                    if (k > 1)
+                    {
+                        object[,] first = new object[1, k - 1];
+                        for (int i = 0; i < k - 1; i++)
+                            first[0, i] = _vt[0, i + 1];
+                        fillRange.Offset(0, 1).Resize(1, k - 1).SetValue(first);
+                    }
+                    //all other rows
+                    object[,] rest = new object[n - 1, k];
+                    for (int i = 1; i < n; i++)
+                        for (int j = 0; j < k; j++)
+                            rest[i - 1, j] = _vt[i, j];
+                    fillRange.Offset(1, 0).Resize(n - 1, k).SetValue(rest);
+                }
+                else if (!ignoreFirstCell)
+                    fillRange.SetValue(_vt);
 
-                //DEFINE.NAME(name_text, refers_to, macro_type, shortcut_text, hidden, category, local)
-                XlCall.Excel(XlCall.xlcDefineName, sheet.Name + "!" + localName, reference, Type.Missing, Type.Missing, false, Type.Missing, true);
-            };
-            XLApp.ActionOnSelectedRange(_outrange, action);
 
-            if (updating) XLApp.ScreenUpdating = true;
+                //set name
+                if (localRange)
+                {
+                    Action action = () =>
+                    {
+                        string sheetref = (string)XlCall.Excel(XlCall.xlSheetNm, outRange);
+                        Worksheet sheet = new Worksheet(sheetref);
+
+                        //re-color
+                        if (addRows || removeRows)
+                        {
+                            formatRange.Select();
+                            XLApp.Copy();
+                            newRange.Select();
+                            XLApp.PasteSpecial(xlPasteType.PasteFormats);
+                        }
+
+                        string reference = string.Format("={4}!R{0}C{2}:R{1}C{3}", x1 + 1, x1 + n + header_offset, y1 + 1, y1 + k, sheetref);
+
+                        //DEFINE.NAME(name_text, refers_to, macro_type, shortcut_text, hidden, category, local)
+                        XlCall.Excel(XlCall.xlcDefineName, sheet.Name + "!" + localName, reference, Type.Missing, Type.Missing, false, Type.Missing, true);
+                    };
+                    XLApp.ActionOnSelectedRange(fillRange, action);
+                }
+            }
+            finally
+            {
+                if (updating) XLApp.ScreenUpdating = true;
+            }
 
         }
 
-        //TODO: these function should be able to paste chunks of data say 5000 lines per chunk rather than converting everything in one array
+        //TODO: these functions should be able to paste chunks of data say 5000 lines per chunk rather than converting everything in one array
 
-        public static void Fill(this ExcelReference outRange, DataTable dt, string localName, bool header = false)
+        public static void Fill(this ExcelReference outRange, DataTable dt, string localName = null, bool header = false, bool ignoreFirstCell = false)
         {
             var vt = dt.ToVariant(header);
-            Fill(outRange, vt, localName, header);
+            Fill(outRange, vt, localName, header, ignoreFirstCell);
         }
 
-        public static void Fill<T>(this ExcelReference outRange, IEnumerable<T> items, string localName, bool header = false) where T: class
+        public static void Fill<T>(this ExcelReference outRange, IEnumerable<T> items, string localName = null, bool header = false, bool ignoreFirstCell = false) where T : class
         {
             var vt = items.ToVariant(header);
-            Fill(outRange, vt, localName, header);
+            Fill(outRange, vt, localName, header, ignoreFirstCell);
         }
     }
 }

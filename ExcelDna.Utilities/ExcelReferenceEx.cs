@@ -203,7 +203,7 @@ namespace ExcelDna.Utilities
 
             if (m == 1 && localRange)
             {
-                formatRange = Name.GetRange(outRange.SheetRef() + "!" + localName);
+                formatRange = Name.GetRange(string.Format("'{0}'!{1}",outRange.SheetRef(), localName));
                 if (formatRange == null)
                     format = false;
                 else

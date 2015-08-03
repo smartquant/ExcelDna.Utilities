@@ -66,7 +66,7 @@ namespace ExcelDna.Utilities
                 _sheetname = value;
             }
         }
-        
+
         public Workbook Workbook
         {
             get { return _workbook; }
@@ -101,7 +101,7 @@ namespace ExcelDna.Utilities
                     for (int i = 0; i < n; i++)
                     {
                         string name = (string)names.GetValue(0, i);
-                        string nameRef = string.Concat(sheetRef, "!", name);
+                        string nameRef = string.Format("'{0}'!{1}", this.SheetRef, name);
 
                         //find out whether name is local or not
                         if ((bool)XlCall.Excel(XlCall.xlfGetName, nameRef, 2))
@@ -134,7 +134,7 @@ namespace ExcelDna.Utilities
                     for (int i = 0; i < n; i++)
                     {
                         string name = (string)names.GetValue(0, i);
-                        string nameRef = string.Concat(sheetRef, "!", name);
+                        string nameRef = string.Format("'{0}'!{1}", this.SheetRef, name);
 
                         //find out whether name is local or not
                         if ((bool)XlCall.Excel(XlCall.xlfGetName, nameRef, 2))
@@ -187,7 +187,7 @@ namespace ExcelDna.Utilities
 
         public ExcelReference Range(string range)
         {
-            object result = XlCall.Excel(XlCall.xlfEvaluate, "='" + this.SheetRef + "'!" + range);
+            object result = XlCall.Excel(XlCall.xlfEvaluate, string.Format("='{0}'!{1}", this.SheetRef, range));
             return result as ExcelReference;
         }
 

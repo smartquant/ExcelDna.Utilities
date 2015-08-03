@@ -75,7 +75,11 @@ namespace ExcelDna.Utilities
         
         public string NameRef
         {
-            get { return (_workbook != null) ? _workbook.Name + "!" + _name : _worksheet.SheetRef + "!" + _name; }
+            get { return (_workbook != null) ? _workbook.Name + "!" + _name : 
+                _worksheet.SheetRef.Contains(" ") ? 
+                string.Format("'{0}'!{1}",_worksheet.SheetRef,_name):
+                string.Format("{0}!{1}", _worksheet.SheetRef, _name);
+            }
         }
         
         public bool IsLocalScope

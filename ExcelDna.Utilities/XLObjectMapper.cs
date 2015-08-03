@@ -234,4 +234,40 @@ namespace ExcelDna.Utilities
 
     }
 
+    /// <summary>
+    /// Proxy class to wrap existing classes to implement IXLObjectMapping
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class XLObjectProxy<T> : IXLObjectMapping
+    {
+        protected static Func<T, int> _getColumnCount;
+        protected static Func<T, int, string> _getColumnName;
+        protected static Func<T, int, object> _getters;
+        protected static Action<T, int, object> _setters;
+
+        public T Instance { get; protected set; }
+
+        #region IXLObjectMapping
+        public int ColumnCount()
+        {
+            return _getColumnCount(Instance);
+        }
+
+        public string ColumnName(int index)
+        {
+            return _getColumnName(Instance, index);
+        }
+
+        public object GetColumn(int index)
+        {
+            return _getters(Instance, index);
+        }
+
+        public void SetColumn(int index, object RHS)
+        {
+            _setters(Instance, index, RHS);
+        }
+        #endregion
+    }
+
 }

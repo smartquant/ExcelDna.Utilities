@@ -280,10 +280,10 @@ namespace ExcelDna.Utilities
                             XLApp.PasteSpecial(xlPasteType.PasteFormats);
                         }
 
-                        string reference = string.Format("={4}!R{0}C{2}:R{1}C{3}", x1 + 1, x1 + n + header_offset, y1 + 1, y1 + k, sheetref);
+                        string reference = string.Format("='{4}'!R{0}C{2}:R{1}C{3}", x1 + 1, x1 + n + header_offset, y1 + 1, y1 + k, sheetref);
 
                         //DEFINE.NAME(name_text, refers_to, macro_type, shortcut_text, hidden, category, local)
-                        XlCall.Excel(XlCall.xlcDefineName, sheet.Name + "!" + localName, reference, Type.Missing, Type.Missing, false, Type.Missing, true);
+                        XlCall.Excel(XlCall.xlcDefineName, localName, reference, Type.Missing, Type.Missing, false, Type.Missing, true);
                     };
                     XLApp.ActionOnSelectedRange(fillRange, action);
                 }

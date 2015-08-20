@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ExcelDna.Utilities</id>
-    <version>0.1.2</version>
+    <version>0.1.4</version>
     <title>ExcelDna.Utilities</title>
     <authors>Joachim Loebb</authors>
     <owners>Joachim Loebb</owners>
@@ -11,6 +11,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Utilities that add functionality to ExcelDna such as creating a COM like interface to the C API</description>
     <releaseNotes>Initial release.</releaseNotes>
-    <copyright>Copyright 2013-2014 Joachim Loebb</copyright>
+    <copyright>Copyright 2013-2015 Joachim Loebb</copyright>
   </metadata>
 </package>

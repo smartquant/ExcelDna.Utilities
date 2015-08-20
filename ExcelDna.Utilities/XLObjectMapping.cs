@@ -36,13 +36,12 @@ namespace ExcelDna.Utilities
         #region fields
 
         private Type _t;
-        private string[] _colnames;
-        private string[] _propnames;
+        private Lazy<string[]> _colnames;
+        private Lazy<string[]> _propnames;
+        private int _columns;
 
-        //private string _separatorArrays = "|";
-
-        private Action<object, object>[] _setters;
-        private Func<object, object>[] _getters;
+        private Action<object, int, object> _setters;
+        private Func<object, int, object> _getters;
         
         #endregion
 
@@ -52,7 +51,7 @@ namespace ExcelDna.Utilities
         {
             _t = t;
 
-            if (factory == null && t.GetInterfaces().FirstOrDefault(i => i == typeof(IXLObjectMapping)) == null)
+            if (factory == null && !typeof(IXLObjectMapping).IsAssignableFrom(t))
             {
                 var fieldinfos = t.GetProperties();
 
@@ -62,23 +61,22 @@ namespace ExcelDna.Utilities
             }
             else
             {
-                IXLObjectMapping instance = (factory!=null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t,new object[0]) 
+                IXLObjectMapping instance = (factory != null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t, new object[0])
                             : (IXLObjectMapping)Activator.CreateInstance(t);
-                int cols = instance.ColumnCount();
+                _columns = instance.ColumnCount();
 
-                _colnames = new string[cols];
-                _propnames = new string[cols];
-                _setters = new Action<object, object>[cols];
-                _getters = new Func<object, object>[cols];
+                _setters = (o, i, v) => ((IXLObjectMapping)o).SetColumn(i, v);
+                _getters = (o, i) => ((IXLObjectMapping)o).GetColumn(i);
 
-                for (int i = 0; i < cols; i++)
+                _colnames = new Lazy<string[]>(() =>
                 {
-                    _colnames[i] = instance.ColumnName(i);
-                    _propnames[i] = _colnames[i];
-                    int j = i; //need to capture the variable
-                    _setters[i] = new Action<object, object>((o, v) => ((IXLObjectMapping)o).SetColumn(j,v));
-                    _getters[i] = new Func<object, object>(o => ((IXLObjectMapping)o).GetColumn(j));
-                }
+                    var retval = new string[_columns];
+                    for (int i = 0; i < _columns; i++)
+                        retval[i] = instance.ColumnName(i);
+                    return retval;
+                });
+                _propnames = _colnames;
+
             }
         }
 
@@ -92,15 +90,28 @@ namespace ExcelDna.Utilities
             if (colnames == null || propnames == null) throw new ArgumentException("colnames == null || propnames == null!");
             if (colnames.Length != propnames.Length) throw new ArgumentException("colnames and propnames must have same length!");
 
-            _setters = propnames.Select(p => new Action<object, object>((o, v) =>
+            _columns = colnames.Length;
+
+            var setters = propnames.Select(p => new Action<object, object>((o, v) =>
             {
                 var f = t.GetProperty(p);
                 f.SetValue(o, v.ConvertTo(f.PropertyType), null);
             })).ToArray();
-            _getters = propnames.Select(p => new Func<object, object>(o => t.GetProperty(p).GetValue(o, null))).ToArray();
-
-            _colnames = colnames;
-            _propnames = propnames;
+            _setters = (o, i, rhs) =>
+            {
+                if (i >= 0 && i < _columns)
+                    setters[i](o, rhs);
+            };
+            var getters = propnames.Select(p => new Func<object, object>(o => t.GetProperty(p).GetValue(o, null))).ToArray();
+            _getters = (o, i) =>
+            {
+                if (i >= 0 && i < _columns)
+                    return getters[i](o);
+                else
+                    return null;
+            };
+            _colnames = new Lazy<string[]>(() => colnames);
+            _propnames = new Lazy<string[]>(() => propnames);
 
         }
 
@@ -115,24 +126,19 @@ namespace ExcelDna.Utilities
 
         public string[] Colnames
         {
-            get { return _colnames; }
+            get { return _colnames.Value; }
         }
 
         public string[] Propnames
         {
-            get { return _propnames; }
+            get { return _propnames.Value; }
         }
 
         public int Columns
         {
-            get { return _colnames.Length; }
+            get { return _columns; }
         }
 
-        //public string SeparatorArrays
-        //{
-        //    get { return _separatorArrays; }
-        //    set { _separatorArrays = value; }
-        //}
 
         #endregion
 
@@ -140,16 +146,16 @@ namespace ExcelDna.Utilities
 
         public object GetColumn(object instance, int index)
         {
-            if (index >= 0 && index < _colnames.Length)
-                return _getters[index](instance);
+            if (index >= 0 && index < _columns)
+                return _getters(instance, index);
             else
                 return null;
         }
 
         public void SetColumn(object instance, int index, object RHS)
         {
-            if (index >= 0 && index < _colnames.Length)
-            _setters[index](instance, RHS);
+            if (index >= 0 && index < _columns)
+            _setters(instance, index, RHS);
         }
 
 

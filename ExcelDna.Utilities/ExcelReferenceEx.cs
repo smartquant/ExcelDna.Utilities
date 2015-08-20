@@ -44,6 +44,16 @@ namespace ExcelDna.Utilities
             return XLConversion.ConvertTo<T>(range.GetValue());
         }
 
+        public static T[,] ToMatrix<T>(this ExcelReference range)
+        {
+            return range.GetValue().ToMatrix<T>();
+        }
+
+        public static T[] ToVector<T>(this ExcelReference range)
+        {
+            return range.GetValue().ToVector<T>();
+        }
+
         public static void DeleteEntireRows(this ExcelReference range)
         {
             //Shift_num	Result
@@ -162,10 +172,10 @@ namespace ExcelDna.Utilities
             return new ExcelReference(range.RowFirst -1, range.RowLast, range.ColumnFirst, range.ColumnLast, range.SheetId);
         }
 
-        public static List<T> ToList<T>(this ExcelReference range) where T : class
+        public static List<T> ToList<T>(this ExcelReference range, Func<T> factory = null) where T : class
         {
             var items = new List<T>();
-            XLObjectMapper.AddRange(items, range.GetValue());
+            XLObjectMapper.AddRange(items, range.GetValue(), factory);
             return items;
         }
 

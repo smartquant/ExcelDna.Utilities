@@ -128,9 +128,9 @@ namespace ExcelDna.Utilities
         /// <returns></returns>
         public static List<T> ToXLObjectList<T>(this DbDataReader reader) where T : class
         {
-            List<T> list = new List<T>();
+            var list = new List<T>();
             Type t = typeof(T);
-            var map = XLObjectMapper.GetObjectMapping<T>();
+            var map = XLObjectMapper.GetObjectMapping<T>(null);
 
             while (reader.Read())
             {

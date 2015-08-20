@@ -80,10 +80,12 @@ namespace ExcelDna.Utilities
             get { return _types; }
         }
 
-        public static XLObjectMapping GetObjectMapping<T>()
+        public static XLObjectMapping GetObjectMapping<T>(T instance)
         {
             var t = typeof(T);
-
+            IXLObjectMapping xlobj = instance as IXLObjectMapping;
+            if (xlobj != null)
+                return new XLObjectMapping(t, () => xlobj);
             return _types.GetOrAdd(t, f => new XLObjectMapping(t));
         }
 
@@ -101,7 +103,7 @@ namespace ExcelDna.Utilities
             if (items.Count() == 0) return new object[1, 1] { { 0 } };
 
             T obj = items.First();
-            var map = GetObjectMapping<T>();
+            var map = GetObjectMapping<T>(obj);
             int n = items.Count(), cols = map.Columns;
             int rows = header ? n + 1 : n;
             int start = header ? 1 : 0;
@@ -132,7 +134,7 @@ namespace ExcelDna.Utilities
             if (items.Count() == 0) return string.Empty;
 
             T obj = items.First();
-            var map = GetObjectMapping<T>();
+            var map = GetObjectMapping<T>(obj);
             int n = items.Count(), cols = map.Columns;
             int rows = header ? n + 1 : n;
             int start = header ? 1 : 0;
@@ -158,7 +160,7 @@ namespace ExcelDna.Utilities
             return sb.ToString();
         }
 
-        public static void AddRange<T>(this ICollection<T> items, object vt) where T : class
+        public static void AddRange<T>(this ICollection<T> items, object vt, Func<T> factory = null) where T : class
         {
             object[,] vtdata = vt as object[,];
 
@@ -166,17 +168,30 @@ namespace ExcelDna.Utilities
             int k = vtdata.GetLength(1);
 
             Type t = typeof(T);
-            var map = GetObjectMapping<T>();
 
+            
+            bool implementsIXlObjectMapping = typeof(IXLObjectMapping).IsAssignableFrom(t);
+
+            XLObjectMapping map = implementsIXlObjectMapping ? null : _types.GetOrAdd(t, f => new XLObjectMapping(t));
+            
             for (int i = 0; i < n; i++)
             {
-                T instance = (t.GetConstructor(Type.EmptyTypes) != null) ? (T)Activator.CreateInstance(t,new object[0]) 
+                T instance = (factory != null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (T)Activator.CreateInstance(t, new object[0]) 
                             : Activator.CreateInstance<T>();
+                
 
-                for (int j = 0; j < k; j++)
+                if (implementsIXlObjectMapping)
                 {
-                    map.SetColumn(instance, j, vtdata[i, j]);
+                    var xlob = instance as IXLObjectMapping;
+                    for (int j = 0; j < k; j++)
+                        xlob.SetColumn(j, vtdata[i, j]);
                 }
+                else
+                {
+                    for (int j = 0; j < k; j++)
+                        map.SetColumn(instance, j, vtdata[i, j]);
+                }
+
                 items.Add(instance);
             }
         }
@@ -188,12 +203,12 @@ namespace ExcelDna.Utilities
         /// <param name="s"></param>
         /// <param name="sep"></param>
         /// <returns></returns>
-        public static T DeserializeFromString<T>(this string s, string sep = "|") where T : class
+        public static T DeserializeFromString<T>(this string s, string sep = "|", Func<T> factory = null) where T : class
         {
             Type t = typeof(T);
-            T instance = (t.GetConstructor(Type.EmptyTypes) != null) ? (T)Activator.CreateInstance(t, new object[0])
+            T instance = (factory!=null)?factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (T)Activator.CreateInstance(t, new object[0])
                         : Activator.CreateInstance<T>();
-            var map = GetObjectMapping<T>();
+            var map = GetObjectMapping<T>(instance);
             string[] vt = s.Split(new string[] { sep }, StringSplitOptions.None);
             for (int i = 0; i < vt.Length; i++)
             {
@@ -211,7 +226,7 @@ namespace ExcelDna.Utilities
         public static string SerializeToString<T>(this T obj, string sep = "|") where T : class
         {
             StringBuilder sb = new StringBuilder();
-            var map = GetObjectMapping<T>();
+            var map = GetObjectMapping<T>(obj);
 
             for (int i = 0; i < map.Columns; i++)
             {
@@ -225,7 +240,7 @@ namespace ExcelDna.Utilities
 
         public static string GetHeader<T>(this T obj, string sep = ",") where T : class
         {
-            var map = GetObjectMapping<T>();
+            var map = GetObjectMapping<T>(obj);
             return string.Join(sep, map.Colnames);
         }
 

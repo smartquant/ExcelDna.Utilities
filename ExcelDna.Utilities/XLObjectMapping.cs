@@ -92,17 +92,24 @@ namespace ExcelDna.Utilities
 
             _columns = colnames.Length;
 
-            var setters = propnames.Select(p => new Action<object, object>((o, v) =>
+            var setters = propnames.Select(p =>
             {
                 var f = t.GetProperty(p);
-                f.SetValue(o, v.ConvertTo(f.PropertyType), null);
-            })).ToArray();
+                return new Action<object, object>((o, v) =>
+                {
+                    f.SetValue(o, v.ConvertTo(f.PropertyType), null);
+                });
+            }).ToArray();
             _setters = (o, i, rhs) =>
             {
                 if (i >= 0 && i < _columns)
                     setters[i](o, rhs);
             };
-            var getters = propnames.Select(p => new Func<object, object>(o => t.GetProperty(p).GetValue(o, null))).ToArray();
+            var getters = propnames.Select(p =>
+            {
+                var f = t.GetProperty(p);
+                return new Func<object, object>(o => f.GetValue(o, null));
+            }).ToArray();
             _getters = (o, i) =>
             {
                 if (i >= 0 && i < _columns)

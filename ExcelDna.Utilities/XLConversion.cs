@@ -49,9 +49,8 @@ namespace ExcelDna.Utilities
 
         public static object ConvertTo(this object vt, Type toType)
         {
-            Type fromType = vt.GetType();
-
             if (vt == null) return GetDefault(toType);
+			Type fromType = vt.GetType();
             if (fromType == typeof(DBNull)) return GetDefault(toType);
 
             if (fromType == typeof(ExcelDna.Integration.ExcelEmpty) || fromType == typeof(ExcelDna.Integration.ExcelError) || fromType == typeof(ExcelDna.Integration.ExcelMissing))
@@ -134,10 +133,10 @@ namespace ExcelDna.Utilities
 
         public static T ConvertTo<T>(this object vt)
         {
-            Type toType = typeof(T);
-            Type fromType = vt.GetType();
-
             if (vt == null) return default(T);
+			
+			Type toType = typeof(T);                       
+			Type fromType = vt.GetType();
             if (fromType == typeof(DBNull)) return default(T);
 
             if (fromType == typeof(ExcelDna.Integration.ExcelEmpty) || fromType == typeof(ExcelDna.Integration.ExcelError) || fromType == typeof(ExcelDna.Integration.ExcelMissing))

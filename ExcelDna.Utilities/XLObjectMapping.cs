@@ -30,6 +30,12 @@ using System.Text;
 
 namespace ExcelDna.Utilities
 {
+    [AttributeUsage(AttributeTargets.Property)]
+    public class XLIgnorePropertyAttribute : Attribute
+    {
+        public XLIgnorePropertyAttribute()
+        { }
+    }
 
     public class XLObjectMapping
     {
@@ -47,13 +53,19 @@ namespace ExcelDna.Utilities
 
         #region constructors
 
+        static XLObjectMapping()
+        {
+            IgnorePropertyAttribute = typeof(XLIgnorePropertyAttribute);
+        }
+
         public XLObjectMapping(Type t, Func<IXLObjectMapping> factory = null)
         {
             _t = t;
 
             if (factory == null && !typeof(IXLObjectMapping).IsAssignableFrom(t))
             {
-                var fieldinfos = t.GetProperties();
+                var fieldinfos = t.GetProperties()
+                    .Where(p => p.GetCustomAttributes(IgnorePropertyAttribute, false).Length == 0);
 
                 var propnames = fieldinfos.Select(f => f.Name).ToArray();
 
@@ -126,6 +138,8 @@ namespace ExcelDna.Utilities
 
         #region properties
 
+        public static Type IgnorePropertyAttribute { get; set; }
+
         public Type MappedType
         {
             get { return _t; }
@@ -169,4 +183,5 @@ namespace ExcelDna.Utilities
         
         #endregion
     }
+
 }

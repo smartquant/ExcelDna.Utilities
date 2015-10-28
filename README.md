@@ -201,6 +201,19 @@ There exist a simple object mapper that allows to interact with ranges and stron
 
     class Person
     {
+	
+		/*
+		Mark properties that should be ignored by the mapper with XLIgnorePropertyAttribute
+		
+		It is also possible to use your own IgnorePropertyAttribute
+		
+		Then set XLObjectMapping.IgnorePropertyAttribute = typeof(MyIgnorePropertyAttribute); at startup
+		This has the obvious advantage that domain model objects don't need a reference to this assembly
+		*/
+	
+		[XLIgnoreProperty]
+		public long DBID { get; set; }
+		
         public string Name { get; set; }
         public string Address { get; set; }
         public DateTime BirthDay { get; set; }

@@ -39,6 +39,7 @@ namespace ExcelDna.Utilities
     public static partial class XLApp
     {
         private static bool _screenupdating = true;
+        private static Lazy<string> _defaultDateFormat = new Lazy<string>(()=>GetDefaultDateFormat());
 
         #region properties
 
@@ -63,35 +64,40 @@ namespace ExcelDna.Utilities
         {
             get
             {
-                var result = XlCall.Excel(XlCall.xlfGetWorkspace, 37) as object[,];
-
-                int i = 16;
-                string date_seperator = (string)result[0, i++];
-                string time_seperator = (string)result[0, i++];
-                string year_symbol = (string)result[0, i++];
-                string month_symbol = (string)result[0, i++];
-                string day_symbol = (string)result[0, i++];
-                string hour_symbol = (string)result[0, i++];
-                string minute_symbol = (string)result[0, i++];
-                string second_symbol = (string)result[0, i++];
-                //32	Number indicating the date order
-                //0 = Month-Day-Year
-                //1 = Day-Month-Year
-                //2 = Year-Month-Day
-                double date_order = (double)result[0, 31];
-
-                day_symbol = day_symbol + day_symbol;
-                month_symbol = month_symbol + month_symbol;
-                year_symbol = string.Concat(year_symbol, year_symbol, year_symbol, year_symbol);
-
-                if (date_order == 0)
-                    return month_symbol + date_seperator + day_symbol + date_seperator + year_symbol;
-                else if (date_order == 1)
-                    return day_symbol + date_seperator + month_symbol + date_seperator + year_symbol;
-                else
-                    return year_symbol + date_seperator + month_symbol + date_seperator + day_symbol;
+                return _defaultDateFormat.Value;
             }
 
+        }
+
+        static string GetDefaultDateFormat()
+        {
+            var result = XlCall.Excel(XlCall.xlfGetWorkspace, 37) as object[,];
+
+            int i = 16;
+            string date_seperator = (string)result[0, i++];
+            string time_seperator = (string)result[0, i++];
+            string year_symbol = (string)result[0, i++];
+            string month_symbol = (string)result[0, i++];
+            string day_symbol = (string)result[0, i++];
+            string hour_symbol = (string)result[0, i++];
+            string minute_symbol = (string)result[0, i++];
+            string second_symbol = (string)result[0, i++];
+            //32	Number indicating the date order
+            //0 = Month-Day-Year
+            //1 = Day-Month-Year
+            //2 = Year-Month-Day
+            double date_order = (double)result[0, 31];
+
+            day_symbol = day_symbol + day_symbol;
+            month_symbol = month_symbol + month_symbol;
+            year_symbol = string.Concat(year_symbol, year_symbol, year_symbol, year_symbol);
+
+            if (date_order == 0)
+                return month_symbol + date_seperator + day_symbol + date_seperator + year_symbol;
+            else if (date_order == 1)
+                return day_symbol + date_seperator + month_symbol + date_seperator + year_symbol;
+            else
+                return year_symbol + date_seperator + month_symbol + date_seperator + day_symbol;
         }
 
         #endregion

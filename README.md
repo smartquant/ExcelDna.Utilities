@@ -5,7 +5,7 @@ Utilities that add functionality to ExcelDna such as creating a COM like interfa
 
 This work builds on the excellent ExcelDna library by Govert van Drimmelen (http://excel-dna.net/).
 
-This is a early development build and still in development.
+You can get the latest build from nuget. While the library is still in development, great care is taken to not break backward compatibility.
 
 
 - Light weight and intuitive (at least for myself) to use, trying to stay close to COM interface but adding C# language specifics such as generics, lambdas, collections
@@ -19,7 +19,7 @@ This is a early development build and still in development.
 
 - Triggering / or preventing Recalculation by passing Action<> (or a lambda), the typical Screenupdating = false pattern
 
-- Interacting with tables as List<T> where T is a row object similar to an ORM
+- Interacting with sheets / range contents as List<T> where T is a row object similar to an ORM
 
 - DataTable extensions for interacting with excel ranges
 
@@ -148,6 +148,9 @@ public static class TestMacros
 		r.FormatBorder(/* lots of options*/);
 		r.FormatColor(backcolor: 0, forecolor: 0, pattern: 0);
 		r.FormatNumber("YYYY.MM.DD");
+		// use this to figure out default date format for your version of excel
+		string defaultDateFormat = XLApp.DefaultDateFormat;
+		r.FormatNumber(defaultDateFormat);
 
 		// get values
 		string val = range.GetValue<string>();
@@ -239,7 +242,7 @@ There exist a simple object mapper that allows to interact with ranges and stron
 
 ```
 
-This simple way to interact with POCOs will only work for simple fields and if the order of the properties in the class is the same is in the columns. However, we can influence how this mapping can be done.
+This simple way to interact with POCOs will only work for simple field types (string, DateTime, double, ...) and if the order of the properties in the class is the same is in the columns. However, we can influence how this mapping can be done.
 
 Another way to map the properties is to define the mapping directly in the object mapper. 
 
@@ -251,7 +254,7 @@ Another way to map the properties is to define the mapping directly in the objec
 
 ```
 
-If we want control more granularly how to map the fields we can implement the following interface. This is particularly useful if certain fields are arrays or class types. The object mapper will automatically pick this interface up.
+If we want to control more granularly how to map the fields we can implement the following interface. This is particularly useful if certain fields are arrays or class types. The object mapper will automatically pick this interface up.
 
 ```csharp
     /// <summary>

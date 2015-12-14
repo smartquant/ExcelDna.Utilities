@@ -151,7 +151,7 @@ namespace ExcelDna.Utilities
 
         public static string RefersTo(this ExcelReference range)
         {
-            object result = XlCall.Excel(XlCall.xlfGetCell, 6);
+            object result = XlCall.Excel(XlCall.xlfGetCell, 6, range);
             return (string)result;
         }
 

@@ -156,6 +156,10 @@ public static class TestMacros
 		string val = range.GetValue<string>();
 		double[] vec = range.GetValue().ToVector<double>();
 		double[,] mat = range.GetValue().ToMatrix<double>();
+		
+		//get a table / (named) range into datatable
+		var dt1 = ws.Range("table1").ToDataTable(header: false);
+            	var dt2 = ws.Range("table1[#All]").ToDataTable(header: true);
 	}
 
 ```

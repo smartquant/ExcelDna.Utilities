@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 
 namespace ExcelDna.Utilities
@@ -74,7 +75,7 @@ namespace ExcelDna.Utilities
             else
             {
                 IXLObjectMapping instance = (factory != null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t, new object[0])
-                            : (IXLObjectMapping)Activator.CreateInstance(t);
+                            : (IXLObjectMapping)Activator.CreateInstance(t, true);
                 _columns = instance.ColumnCount();
 
                 _setters = (o, i, v) => ((IXLObjectMapping)o).SetColumn(i, v);
@@ -94,6 +95,7 @@ namespace ExcelDna.Utilities
 
         public XLObjectMapping(Type t, string[] colnames, string[] propnames)
         {
+            _t = t;
             SetColnames(t, colnames, propnames);
         }
 
@@ -107,10 +109,19 @@ namespace ExcelDna.Utilities
             var setters = propnames.Select(p =>
             {
                 var f = t.GetProperty(p);
-                return new Action<object, object>((o, v) =>
+                if (f.GetSetMethod() == null)
                 {
-                    f.SetValue(o, v.ConvertTo(f.PropertyType), null);
-                });
+                    var field = t.GetField(string.Format("<{0}>k__BackingField", p), BindingFlags.Instance | BindingFlags.NonPublic);
+                    return new Action<object, object>((o, v) =>
+                    {
+                        field.SetValue(o, v.ConvertTo(f.PropertyType));
+                    });
+                }
+                else
+                    return new Action<object, object>((o, v) =>
+                    {
+                        f.SetValue(o, v.ConvertTo(f.PropertyType), null);
+                    });
             }).ToArray();
             _setters = (o, i, rhs) =>
             {

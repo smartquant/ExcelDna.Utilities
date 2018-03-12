@@ -99,19 +99,35 @@ namespace ExcelDna.Utilities
             SetColnames(t, colnames, propnames);
         }
 
+        private static IEnumerable<FieldInfo> GetAllFields(Type t)
+        {
+            if (t == null)
+                return Enumerable.Empty<FieldInfo>();
+
+            BindingFlags flags =  BindingFlags.NonPublic | BindingFlags.Instance;
+            return t.GetFields(flags).Concat(GetAllFields(t.BaseType));
+        }
+
+
         private void SetColnames(Type t, string[] colnames, string[] propnames)
         {
             if (colnames == null || propnames == null) throw new ArgumentException("colnames == null || propnames == null!");
             if (colnames.Length != propnames.Length) throw new ArgumentException("colnames and propnames must have same length!");
 
             _columns = colnames.Length;
+            List<FieldInfo> allFields = null;
 
             var setters = propnames.Select(p =>
             {
                 var f = t.GetProperty(p);
-                if (f.GetSetMethod() == null)
+                if (f.GetSetMethod() == null) // Check at least for auto-property
                 {
-                    var field = t.GetField(string.Format("<{0}>k__BackingField", p), BindingFlags.Instance | BindingFlags.NonPublic);
+                    allFields = allFields ?? GetAllFields(t).ToList();
+                    var field = allFields.FirstOrDefault(x => x.Name == string.Format("<{0}>k__BackingField", p));
+
+                    if (field == null) 
+                        return new Action<object, object>((o, v) => { }); 
+                    
                     return new Action<object, object>((o, v) =>
                     {
                         field.SetValue(o, v.ConvertTo(f.PropertyType));

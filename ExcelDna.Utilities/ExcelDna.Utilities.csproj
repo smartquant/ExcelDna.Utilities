@@ -5,6 +5,9 @@
     <AssemblyTitle>ExcelDna.Utilities</AssemblyTitle>
     <AssemblyName>ExcelDna.Utilities</AssemblyName>
     <Description>Utilities that add functionality to ExcelDna such as creating a COM like interface to the C API</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/smartquant/ExcelDna.Utilities</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Authors>Joachim Loebb</Authors>
     <Owners>Joachim Loebb</Owners>
     <Copyright>Copyright © 2014-2021 Joachim Loebb</Copyright>
@@ -14,6 +17,9 @@
 
   <ItemGroup>
     <PackageReference Include="ExcelDna.Integration" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 

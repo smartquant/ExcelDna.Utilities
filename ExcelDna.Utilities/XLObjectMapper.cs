@@ -177,8 +177,8 @@ namespace ExcelDna.Utilities
             for (int i = 0; i < n; i++)
             {
                 T instance = (factory != null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (T)Activator.CreateInstance(t, new object[0]) 
-                            : Activator.CreateInstance<T>();
-                
+                            : (T)Activator.CreateInstance(t, true);
+
 
                 if (implementsIXlObjectMapping)
                 {

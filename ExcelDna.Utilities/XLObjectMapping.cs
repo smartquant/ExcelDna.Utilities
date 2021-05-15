@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 
 namespace ExcelDna.Utilities
@@ -74,7 +75,7 @@ namespace ExcelDna.Utilities
             else
             {
                 IXLObjectMapping instance = (factory != null) ? factory() : (t.GetConstructor(Type.EmptyTypes) != null) ? (IXLObjectMapping)Activator.CreateInstance(t, new object[0])
-                            : (IXLObjectMapping)Activator.CreateInstance(t);
+                            : (IXLObjectMapping)Activator.CreateInstance(t, true);
                 _columns = instance.ColumnCount();
 
                 _setters = (o, i, v) => ((IXLObjectMapping)o).SetColumn(i, v);
@@ -94,8 +95,19 @@ namespace ExcelDna.Utilities
 
         public XLObjectMapping(Type t, string[] colnames, string[] propnames)
         {
+            _t = t;
             SetColnames(t, colnames, propnames);
         }
+
+        private static IEnumerable<FieldInfo> GetAllFields(Type t)
+        {
+            if (t == null)
+                return Enumerable.Empty<FieldInfo>();
+
+            BindingFlags flags =  BindingFlags.NonPublic | BindingFlags.Instance;
+            return t.GetFields(flags).Concat(GetAllFields(t.BaseType));
+        }
+
 
         private void SetColnames(Type t, string[] colnames, string[] propnames)
         {
@@ -103,14 +115,29 @@ namespace ExcelDna.Utilities
             if (colnames.Length != propnames.Length) throw new ArgumentException("colnames and propnames must have same length!");
 
             _columns = colnames.Length;
+            List<FieldInfo> allFields = null;
 
             var setters = propnames.Select(p =>
             {
                 var f = t.GetProperty(p);
-                return new Action<object, object>((o, v) =>
+                if (f.GetSetMethod() == null) // Check at least for auto-property
                 {
-                    f.SetValue(o, v.ConvertTo(f.PropertyType), null);
-                });
+                    allFields = allFields ?? GetAllFields(t).ToList();
+                    var field = allFields.FirstOrDefault(x => x.Name == string.Format("<{0}>k__BackingField", p));
+
+                    if (field == null) 
+                        return new Action<object, object>((o, v) => { }); 
+                    
+                    return new Action<object, object>((o, v) =>
+                    {
+                        field.SetValue(o, v.ConvertTo(f.PropertyType));
+                    });
+                }
+                else
+                    return new Action<object, object>((o, v) =>
+                    {
+                        f.SetValue(o, v.ConvertTo(f.PropertyType), null);
+                    });
             }).ToArray();
             _setters = (o, i, rhs) =>
             {

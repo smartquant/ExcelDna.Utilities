@@ -22,53 +22,51 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System;
 
+namespace ExcelDna.Utilities;
 
-namespace ExcelDna.Utilities
+public enum xlCalculation
 {
-    public enum xlCalculation
-    {
-        Automatic = 1,
-        SemiAutomatic = 2,
-        Manual = 3,
-    }
-
-    public enum xlPasteType
-    {
-        PasteAll = 1,
-        PasteFormulas = 2,
-        PasteValues = 3,
-        PasteFormats = 4,
-        PasteNotes = 5
-    }
-
-    public enum xlPasteAction
-    {
-        None = 1,
-        Add = 2,
-        Substract = 3,
-        Multiply = 4,
-        Divide = 5,
-    }
-
-    public enum xlUpdateLinks
-    {
-        Never = 0,
-        ExternalOnly = 1,
-        RemoteOnly = 2,
-        ExternalAndRemote = 3,
-    }
-
-    public enum xlBorderStyle
-    {
-        NoBorder = 0,
-        ThinLine = 1,
-        MediumLine = 2,
-        DashedLine = 3,
-        DottedLine = 4,
-        ThickLine = 5,
-        Doubleline = 6,
-        HairLine = 7,
-    }
+    Automatic = 1,
+    SemiAutomatic = 2,
+    Manual = 3,
 }
+
+public enum xlPasteType
+{
+    PasteAll = 1,
+    PasteFormulas = 2,
+    PasteValues = 3,
+    PasteFormats = 4,
+    PasteNotes = 5
+}
+
+public enum xlPasteAction
+{
+    None = 1,
+    Add = 2,
+    Substract = 3,
+    Multiply = 4,
+    Divide = 5,
+}
+
+public enum xlUpdateLinks
+{
+    Never = 0,
+    ExternalOnly = 1,
+    RemoteOnly = 2,
+    ExternalAndRemote = 3,
+}
+
+public enum xlBorderStyle
+{
+    NoBorder = 0,
+    ThinLine = 1,
+    MediumLine = 2,
+    DashedLine = 3,
+    DottedLine = 4,
+    ThickLine = 5,
+    Doubleline = 6,
+    HairLine = 7,
+}
+

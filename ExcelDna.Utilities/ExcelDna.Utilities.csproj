@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <AssemblyTitle>ExcelDna.Utilities</AssemblyTitle>
     <AssemblyName>ExcelDna.Utilities</AssemblyName>
     <Description>Utilities that add functionality to ExcelDna such as creating a COM like interface to the C API</Description>
@@ -10,16 +11,18 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Authors>Joachim Loebb</Authors>
     <Owners>Joachim Loebb</Owners>
-    <Copyright>Copyright © 2014-2021 Joachim Loebb</Copyright>
+    <Copyright>Copyright © 2014-2024 Joachim Loebb</Copyright>
     <Version>$(Version)</Version>     
     <FileVersion>$(Verson)</FileVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExcelDna.Integration" Version="1.0.0" />
+    <PackageReference Include="ExcelDna.Integration" Version="1.6.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../LICENSE" Pack="true" PackagePath=""/>
+    <None Include="../README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 
